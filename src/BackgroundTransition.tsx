@@ -103,7 +103,7 @@ function World(props: {setEffectParameters: (effectParameters:{glitchActive:bool
 
 const BackgroundTransition = () => {
   const [effectParameters, setEffectParameters] = useState({
-    glitchActive: true
+    glitchActive: false
   })
   return (
     <Canvas>
