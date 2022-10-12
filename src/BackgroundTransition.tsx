@@ -1,8 +1,8 @@
-import React, { RefObject, useRef, useState } from "react";
+import React, { RefObject, useEffect, useRef, useState } from "react";
 import { Canvas, useFrame, useLoader, useThree } from "@react-three/fiber";
 import { Group, TextureLoader, Vector2 } from "three";
 import gsap from "gsap";
-import { EffectComposer, Glitch } from "@react-three/postprocessing";
+import { ChromaticAberration, EffectComposer, Glitch, } from "@react-three/postprocessing";
 
 function Config() {
   const state = useThree();
@@ -13,7 +13,7 @@ function Config() {
   return <></>;
 }
 
-function World(props: {setEffectParameters: (effectParameters:{glitchActive:boolean}) => void}) {
+function World(props: { setEffectParameters: (effectParameters: { glitchActive: boolean, chromaticAberration: boolean }) => void }) {
 
   const colorMap = useLoader(TextureLoader, "lucyBg.webp")
   const colorMap2 = useLoader(TextureLoader, "davidBg.webp")
@@ -40,26 +40,67 @@ function World(props: {setEffectParameters: (effectParameters:{glitchActive:bool
 
 
     timeline
+      .to({}, {
+        duration: 0.2,
+        onStart: () => {
+          props.setEffectParameters({glitchActive: false, chromaticAberration: true});
+        },
+      })
       .to(state.camera.position, {
         duration: 0.4,
         x: 1920,
         ease: "power4.inOut",
-        onStart: () => {props.setEffectParameters({glitchActive: true});},
-        onComplete: () => {props.setEffectParameters({glitchActive: false});}
+        onStart: () => {
+          props.setEffectParameters({glitchActive: true, chromaticAberration: false});
+        },
+        onComplete: () => {
+          props.setEffectParameters({glitchActive: false, chromaticAberration: false});
+        }
       })
   }
 
   function onClickDavid() {
-    gsap.to(state.camera.position, {
-      duration: 0.6,
+
+    const timeline = gsap.timeline();
+
+
+    timeline.to({}, {
+      duration: 0.2,
+      onStart: () => {
+        props.setEffectParameters({glitchActive: false, chromaticAberration: true});
+      },
+    }).to(state.camera.position, {
+      duration: 0.4,
       x: 0,
       ease: "power4.inOut",
-      onStart: () => {props.setEffectParameters({glitchActive: true});},
-      onComplete: () => {props.setEffectParameters({glitchActive: false});}
+      onStart: () => {
+        props.setEffectParameters({glitchActive: true, chromaticAberration: false});
+      },
+      onComplete: () => {
+        props.setEffectParameters({glitchActive: false, chromaticAberration: false});
+      }
     })
   }
 
-  console.log(alphaMap)
+
+  useFrame((state) => {
+    if (group1.current) {
+
+      group1.current.children.forEach((child, index) => {
+        const newZ = Math.abs((Math.sin(state.clock.elapsedTime / 20)) * 75 * index);
+        child.position.setZ(newZ)
+      })
+    }
+
+    if (group2.current) {
+
+      group2.current.children.forEach((child, index) => {
+        const newZ = Math.abs((Math.sin(state.clock.elapsedTime / 20)) * 75 * index);
+        child.position.setZ(newZ)
+      })
+    }
+  })
+
   return <>
     <group ref={group1} position={[0, 0, 0]} onClick={onClickLucy}>
       <mesh position={[0, 0, 0]}>
@@ -70,11 +111,11 @@ function World(props: {setEffectParameters: (effectParameters:{glitchActive:bool
         <planeGeometry args={[1920, 1080, 1, 1]}/>
         <meshBasicMaterial map={colorMap} alphaMap={alphaMap} transparent={true} opacity={0.8}/>
       </mesh>
-      <mesh position={[0, 0, 150]}>
+      <mesh position={[0, 0, 75 * 2]}>
         <planeGeometry args={[1920, 1080, 1, 1]}/>
         <meshBasicMaterial map={colorMap} alphaMap={alphaMap} transparent={true} opacity={0.8}/>
       </mesh>
-      <mesh position={[0, 0, 225]}>
+      <mesh position={[0, 0, 75 * 3]}>
         <planeGeometry args={[1920, 1080, 1, 1]}/>
         <meshBasicMaterial map={colorMap} alphaMap={alphaMap} transparent={true} opacity={0.8}/>
       </mesh>
@@ -89,11 +130,11 @@ function World(props: {setEffectParameters: (effectParameters:{glitchActive:bool
         <planeGeometry args={[1920, 1080, 1, 1]}/>
         <meshBasicMaterial map={colorMap2} alphaMap={alphaMap} transparent={true} opacity={0.8}/>
       </mesh>
-      <mesh position={[0, 0, 150]}>
+      <mesh position={[0, 0, 75 * 2]}>
         <planeGeometry args={[1920, 1080, 1, 1]}/>
         <meshBasicMaterial map={colorMap2} alphaMap={alphaMap} transparent={true} opacity={0.8}/>
       </mesh>
-      <mesh position={[0, 0, 225]}>
+      <mesh position={[0, 0, 75 * 3]}>
         <planeGeometry args={[1920, 1080, 1, 1]}/>
         <meshBasicMaterial map={colorMap2} alphaMap={alphaMap} transparent={true} opacity={0.8}/>
       </mesh>
@@ -103,14 +144,28 @@ function World(props: {setEffectParameters: (effectParameters:{glitchActive:bool
 
 const BackgroundTransition = () => {
   const [effectParameters, setEffectParameters] = useState({
-    glitchActive: false
+    glitchActive: false,
+    chromaticAberration: false,
   })
+
+  let effects;
+  if (effectParameters.glitchActive) {
+    effects = <Glitch active={effectParameters.glitchActive} delay={new Vector2(0, 0)} mode={3}></Glitch>
+  } else if (effectParameters.chromaticAberration) {
+    effects = <ChromaticAberration
+      offset={new Vector2(0.3, 0.002)} // color offset
+    />
+  } else {
+    effects = <></>
+  }
+
+
   return (
     <Canvas>
       <Config/>
       <World setEffectParameters={setEffectParameters}/>
       <EffectComposer>
-        <Glitch active={effectParameters.glitchActive} delay={new Vector2(0,0)} mode={3}></Glitch>
+        {effects}
       </EffectComposer>
     </Canvas>
 
