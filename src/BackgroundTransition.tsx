@@ -87,7 +87,7 @@ function World(props: { setEffectParameters: (effectParameters: { glitchActive: 
     if (group1.current) {
 
       group1.current.children.forEach((child, index) => {
-        const newZ = Math.abs((Math.sin(state.clock.elapsedTime / 20)) * 75 * index);
+        const newZ = (75 + Math.abs((Math.sin(state.clock.elapsedTime / 10)) * 25)) * index;
         child.position.setZ(newZ)
       })
     }
@@ -95,7 +95,7 @@ function World(props: { setEffectParameters: (effectParameters: { glitchActive: 
     if (group2.current) {
 
       group2.current.children.forEach((child, index) => {
-        const newZ = Math.abs((Math.sin(state.clock.elapsedTime / 20)) * 75 * index);
+        const newZ = (75 + Math.abs((Math.sin(state.clock.elapsedTime / 10)) * 25)) * index;
         child.position.setZ(newZ)
       })
     }
