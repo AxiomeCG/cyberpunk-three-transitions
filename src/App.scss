@@ -1,0 +1,20 @@
+@import "./Fonts/WEB/css/kola.css";
+
+.instructions {
+    font-family: Kola-Regular, Inter, Avenir, Helvetica, Arial, sans-serif;
+    display: flex;
+    flex-direction: row;
+    gap: 6px;
+    color: white;
+    position: absolute;
+    z-index: 1;
+    top: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.line {
+    width: 50px;
+    height: 10px;
+    border-bottom: white solid 1px;
+}
